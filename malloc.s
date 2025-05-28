@@ -12,6 +12,9 @@ _start:
     movq $0, %rdi
     syscall
 
+
+.globl iniciaAlocador
+.type iniciaAlocador, @function
 iniciaAlocador:
     pushq %rbp
     movq %rsp, %rbp
@@ -27,8 +30,15 @@ iniciaAlocador:
     ret
 
 
-//finalizaAlocador:
+; .globl alocaMemoria
+; .type alocaMemoria, @function
+; alocaMemoria:
 
-//liberaMemoria:
+; .globl finalizaAlocador
+; .type finalizaAlocador, @function
+; finalizaAlocador
 
-//alocaMemoria:
+; .globl liberaMemoria
+; .type liberaMemoria, @function
+; liberaMemoria:
+
