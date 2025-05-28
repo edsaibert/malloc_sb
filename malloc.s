@@ -13,12 +13,19 @@ _start:
     syscall
 
 iniciaAlocador:
+    pushq %rbp
+    movq %rsp, %rbp
+
     movq $12, %rax
     movq $0, %rdi
     syscall 
 
     movq %rax, inicioHeap
     movq %rax, topoHeap
+
+    pop %rbp
+    ret
+
 
 //finalizaAlocador:
 
