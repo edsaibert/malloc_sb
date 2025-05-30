@@ -8,6 +8,9 @@ int main(long int argc, char **argv)
     void *a;
     int i;
 
+    iniciaAlocador();
+    a = (void*) alocaMemoria(100);
+
     // to-do: inserir logica do codigo aqui
     // for (i = 0; i < 100; i++) {
     //     a = malloc(100);

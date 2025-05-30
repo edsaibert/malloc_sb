@@ -1,7 +1,7 @@
 #ifndef malloc_h
 #define malloc_h
 
-void* alocaMemoria();
+void* alocaMemoria(int t);
 
 void iniciaAlocador();
 

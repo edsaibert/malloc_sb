@@ -3,15 +3,6 @@
     topoHeap: .quad 0
 
 .section .text
-.globl _start
-
-_start:
-   call iniciaAlocador 
-
-    movq $60, %rax
-    movq $0, %rdi
-    syscall
-
 
 .globl iniciaAlocador
 .type iniciaAlocador, @function
@@ -30,15 +21,77 @@ iniciaAlocador:
     ret
 
 
-; .globl alocaMemoria
-; .type alocaMemoria, @function
-; alocaMemoria:
+.globl criarNodo
+.type criarNodo, @function
+criarNodo:
+    pushq %rbp 
+    movq %rsp, %rbp
+    subq $16, %rsp
 
-; .globl finalizaAlocador
-; .type finalizaAlocador, @function
-; finalizaAlocador
+    movq 16(%rbp), %rsi
+    movq topoHeap, %rax
 
-; .globl liberaMemoria
-; .type liberaMemoria, @function
-; liberaMemoria:
+    movq $1, (%rax)
+    movq %rsi, 1(%rax)
+
+    add $16, %rsp
+    pop %rbp
+    ret
+
+.globl alocaMemoria
+.type alocaMemoria, @function
+alocaMemoria:
+    pushq %rbp
+    movq %rsp, %rbp
+    subq $8 , %rsp
+    movq %rdi, %rbx # transfere parametro para reg rbx
+
+    movq topoHeap, %rcx
+    cmp inicioHeap, %rcx
+    je aumentarHeap # caso a heap esteja vazia, pula para aumentarHeap
+
+    # movq 0, %rax # flag para o loop
+    # # necessario procurar um bloco livre com tamanho igual ou maior a reg rax
+    # loop:
+    # cmp %rax, %rsi
+    # jge fimLoop
+
+    # # se encontrar, torna o bloco ocupado e retorna o endereço 
+
+    # fimLoop:
+
+    # se não, utiliza a syscall brk e aumenta o tamanho da heap
+    aumentarHeap:
+    movq $12, %rax
+    add topoHeap, %rdi
+    syscall
+    pushq %rdi
+    call criarNodo
+    add $8, %rsp
+    movq %rax, topoHeap
+    movq %rbx, %rax
+
+    fimAlocaMemoria:
+    pop %rbp
+    ret
+
+.globl finalizaAlocador
+.type finalizaAlocador, @function
+finalizaAlocador:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    pop %rbp
+    ret
+
+
+.globl liberaMemoria
+.type liberaMemoria, @function
+liberaMemoria:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    pop %rbp
+    ret
+
 
