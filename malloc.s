@@ -122,6 +122,17 @@ imprimeNodo:
     movq %rax, %r9
     movq $0, %rcx       # iterador
 
+    # imprime bloco gerencial
+    pushq %rcx
+    pushq %rsi
+    movq $16, %rdx
+    movq $1, %rdi
+    movq $1, %rax
+    leaq gerencial(%rip), %rsi
+    syscall
+    popq %rsi
+    popq %rcx
+
     loopImprimeBloco:
     cmp %rcx, %r9         # done printing?
     je fimImprimeBloco
@@ -142,6 +153,13 @@ imprimeNodo:
     jmp loopImprimeBloco
 
     fimImprimeBloco:
+    # imprime nova linha
+    leaq novaLinha(%rip), %rsi  # Endereço da string "\n"
+    movq $1, %rdx               # Tamanho da nova linha
+    movq $1, %rdi               # STDOUT
+    movq $1, %rax               # Syscall número para write
+    syscall
+
     movq %r8, %rax
     add %r9, %rax 
     add $16, %rax
