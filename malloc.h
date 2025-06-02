@@ -9,4 +9,6 @@ void finalizaAlocador();
 
 int liberaMemoria(void* bloco);
 
+void imprimeHeap();
+
 #endif

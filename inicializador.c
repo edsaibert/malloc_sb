@@ -9,7 +9,8 @@ int main(long int argc, char **argv)
     int i;
 
     iniciaAlocador();
-    a = (void*) alocaMemoria(100);
+    a = (void*) alocaMemoria(5);
+    imprimeHeap();
 
     // to-do: inserir logica do codigo aqui
     // for (i = 0; i < 100; i++) {

@@ -1,8 +1,13 @@
 .section .data
     inicioHeap: .quad 0
     topoHeap: .quad 0
+    blocoLivre: .string "-"
+    blocoOcupado: .string "+"
+    novaLinha: .string "\n"
+    formato: .string "%c"
 
 .section .text
+.extern printf
 
 .globl iniciaAlocador
 .type iniciaAlocador, @function
@@ -24,17 +29,14 @@ iniciaAlocador:
 .globl criarNodo
 .type criarNodo, @function
 criarNodo:
-    pushq %rbp 
+    pushq %rbp
     movq %rsp, %rbp
-    subq $16, %rsp
 
-    movq 16(%rbp), %rsi
-    movq topoHeap, %rax
+    movq $1, (%rdi)      # Marca como ocupado
+    movq %rsi, 8(%rdi)   # Salva o tamanho logo após o status
 
-    movq $1, (%rax)
-    movq %rsi, 1(%rax)
+    movq %rdi, %rax      # Retorna o endereço do bloco criado
 
-    add $16, %rsp
     pop %rbp
     ret
 
@@ -43,12 +45,12 @@ criarNodo:
 alocaMemoria:
     pushq %rbp
     movq %rsp, %rbp
-    subq $8 , %rsp
-    movq %rdi, %rbx # transfere parametro para reg rbx
+    movq %rdi, %rbx # tamanho solicitado
+    add $16, %rbx # tamanho total do bloco (header + payload)
 
     movq topoHeap, %rcx
     cmp inicioHeap, %rcx
-    je aumentarHeap # caso a heap esteja vazia, pula para aumentarHeap
+    je aumentarHeap
 
     # movq 0, %rax # flag para o loop
     # # necessario procurar um bloco livre com tamanho igual ou maior a reg rax
@@ -62,18 +64,18 @@ alocaMemoria:
 
     # se não, utiliza a syscall brk e aumenta o tamanho da heap
     aumentarHeap:
-    movq $12, %rax
-    add topoHeap, %rdi
-    syscall
-    pushq %rdi
-    call criarNodo
-    add $8, %rsp
-    movq %rax, topoHeap
-    movq %rbx, %rax
+        movq $12, %rax
+        movq %rbx, %rdi         # novo topo desejado em %rdi
+        add topoHeap, %rdi      # adiciona o topo atual para obter o novo topo
+        syscall                 # brk(novo topo)
+        movq %rax, topoHeap     # retorna endereço do novo topo
+        movq topoHeap, %rdi     # endereço do novo bloco
+        movq %rbx, %rsi         # tamanho do bloco
+        call criarNodo
 
     fimAlocaMemoria:
-    pop %rbp
-    ret
+        pop %rbp
+        ret
 
 .globl finalizaAlocador
 .type finalizaAlocador, @function
@@ -95,3 +97,73 @@ liberaMemoria:
     ret
 
 
+.globl imprimeNodo
+.type imprimeNodo, @function
+imprimeNodo:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    movq 16(%rbp), %rbx # pega o endereço do nodo
+    movq %rbx, %r8
+    movq (%rbx), %rax   # identifica se o bloco é livre ou ocupado
+    cmp $1, %rax
+    jne blocoLivreJump
+    leaq blocoOcupado(%rip), %rsi
+    jmp imprimeBloco
+
+    blocoLivreJump:
+    leaq blocoLivre(%rip), %rsi
+
+    imprimeBloco:
+    add $8, %rbx        # incrementa o ponteiro para a informação de tamanho do bloco
+    movq (%rbx), %rax   # pega o tamanho do bloco
+    movq %rax, %r9
+    movq $0, %rcx       # iterador
+
+    loopImprimeBloco:
+    cmp %rcx, %r9         # done printing?
+    je fimImprimeBloco
+
+    pushq %rcx
+    pushq %rax
+
+    # syscall: write(STDOUT, %rsi, 1)
+    movq $1, %rdx         # size = 1
+    movq $1, %rdi         # STDOUT
+    movq $1, %rax         # syscall number for write
+    syscall
+
+    popq %rax
+    popq %rcx
+
+    inc %rcx
+    jmp loopImprimeBloco
+
+    fimImprimeBloco:
+    movq %r8, %rax
+    add %r9, %rax 
+    add $16, %rax
+    pop %rbp
+    ret
+
+
+.globl imprimeHeap
+.type imprimeHeap, @function
+imprimeHeap:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    movq inicioHeap, %rbx
+
+    loopImprimeHeap:
+    cmp topoHeap, %rbx
+    je fimImprimeHeap
+    pushq %rbx 
+    call imprimeNodo
+    add $8, %rsp
+    movq %rax, %rbx
+    jmp loopImprimeHeap
+
+    fimImprimeHeap:
+    pop %rbp
+    ret
