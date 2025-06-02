@@ -114,8 +114,75 @@ finalizaAlocador:
 liberaMemoria:
     pushq %rbp
     movq %rsp, %rbp
+    # parametros:
+    # %rdi - bloco a ser liberado
+
+    # necessário:
+    # liberar bloco da lista de blocos ocupados, rearranjar os ponteiros
+    # adicionar bloco aos blocos livres, rearranjar os ponteiros
+    # fundir blocos livres adjacentes
+
+    movq listaOcupado, %rax
+    cmp %rdi, %rax
+    je primeiroBlocoOcupado
+
+    movq %rax, %rbx
+
+    loopEncontraBloco:
+    movq 8(%rax), %rax
+    cmp %rdi, %rax  # verifica se o endereço next de rax é o bloco a ser liberado
+    je blocoEncontrado
+    movq 8(%rbx), %rbx
+    movq %rbx, %rax
+    jmp loopEncontraBloco
+
+    primeiroBlocoOcupado:
+    # Caso o bloco seja o primeiro da lista
+    movq listaOcupado, %rdx
+    movq 8(%rax), %rdx
+    jmp blocoLiberado
+
+    blocoEncontrado:
+    # %rbx - bloco anterior
+    # %rax - bloco atual (a ser liberado)
+    # %rcx - próximo bloco
+
+    movq 8(%rax), %rcx
+    movq %rcx, 8(%rbx)  # Atualiza o ponteiro do bloco anterior para o próximo
+
+    blocoLiberado:
+    # Adiciona o bloco liberado à lista de blocos livres
+    movq listaLivre, %rcx
+    movq %rdi, listaLivre
+    movq %rcx, 8(%rdi)  # Atualiza o ponteiro do bloco liberado para o próximo livre
+    movq $0, (%rdi)     # Marca o bloco como livre
+
+    call fundirVizinhos
 
     pop %rbp
+    ret
+
+
+.globl fundirVizinhos
+.type fundirVizinhos, @function
+fundirVizinhos:
+    pushq %rbp
+    movq %rsp, %rbp
+    # parametros:
+    # rdi - endereço do bloco que acabou de ser liberado
+
+    # necessário percorrer a heap e encontrar o bloco anterior e próximo do bloxo
+    movq inicioHeap, %rax 
+    movq %rax, %rbx
+
+    loopEncontraBloco:
+    cmp %rdi, %rax
+    jge fimLoopEncontraBloco
+    add 16(%rbx), %rbx
+    jmp loopEncontraBloco
+
+    fimLoopEncontraBloco:
+    popq %rbp
     ret
 
 
@@ -178,7 +245,9 @@ imprimeNodo:
     movq $1, %rax               # Syscall número para write
     syscall
 
-    movq 8(%r8), %rax        # próximo bloco via .next
+    movq %r9, %rax
+    add %r8, %rax
+    add $24, %rax 
     pop %rbp
     ret
 
