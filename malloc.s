@@ -113,9 +113,9 @@ imprimeNodo:
     pushq %rbp
     movq %rsp, %rbp
 
-    movq 16(%rbp), %rbx # pega o endereço do nodo
+    movq 16(%rbp), %rbx      # endereço do bloco
     movq %rbx, %r8
-    movq (%rbx), %rax   # identifica se o bloco é livre ou ocupado
+    movq (%rbx), %rax        # status
     cmp $1, %rax
     jne blocoLivreJump
     leaq blocoOcupado(%rip), %rsi
@@ -125,10 +125,8 @@ imprimeNodo:
     leaq blocoLivre(%rip), %rsi
 
     imprimeBloco:
-    add $16, %rbx        # incrementa o ponteiro para a informação de tamanho do bloco (pula next)
-    movq (%rbx), %rax   # pega o tamanho do bloco
-    movq %rax, %r9
-    movq $0, %rcx       # iterador
+    movq 16(%rbx), %r9      # pega o tamanho direto
+    movq $0, %rcx           # iterador
 
     # imprime bloco gerencial
     pushq %rcx
@@ -142,7 +140,7 @@ imprimeNodo:
     popq %rcx
 
     loopImprimeBloco:
-    cmp %rcx, %r9         # done printing?
+    cmp %rcx, %r9         
     je fimImprimeBloco
 
     pushq %rcx
@@ -168,9 +166,7 @@ imprimeNodo:
     movq $1, %rax               # Syscall número para write
     syscall
 
-    movq %r8, %rax
-    add %r9, %rax 
-    add $16, %rax
+    movq 8(%r8), %rax        # próximo bloco via .next
     pop %rbp
     ret
 
