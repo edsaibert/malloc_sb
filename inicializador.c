@@ -12,6 +12,9 @@ int main(long int argc, char **argv)
     a = (void*) alocaMemoria(100);
     imprimeHeap();
 
+    a = (void*) alocaMemoria(5);
+    imprimeHeap();
+
     // to-do: inserir logica do codigo aqui
     // for (i = 0; i < 100; i++) {
     //     a = malloc(100);

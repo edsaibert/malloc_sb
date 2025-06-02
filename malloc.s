@@ -1,11 +1,13 @@
 .section .data
     inicioHeap: .quad 0
     topoHeap: .quad 0
+    listaOcupado: .quad 0
+    listaLivre: .quad 0
+
     blocoLivre: .string "-"
     blocoOcupado: .string "+"
     novaLinha: .string "\n"
-    formato: .string "%c"
-    gerencial: .string "################"
+    gerencial: .string "########################"
 
 .section .text
 .extern printf
@@ -22,6 +24,8 @@ iniciaAlocador:
 
     movq %rax, inicioHeap
     movq %rax, topoHeap
+    movq $0, listaOcupado
+    movq $0, listaLivre
 
     pop %rbp
     ret
@@ -34,7 +38,10 @@ criarNodo:
     movq %rsp, %rbp
 
     movq $1, (%rdi)      # Marca como ocupado
-    movq %rsi, 8(%rdi)   # Salva o tamanho logo após o status
+    movq %rdx, 8(%rdi)    # next = NULL
+    movq %rsi, 16(%rdi)   # Salva o tamanho 
+    movq listaOcupado, %rdx
+    movq %rdi, listaOcupado        # listaOcupado = end ultimo bloco alocado
 
     movq %rdi, %rax      # Retorna o endereço do bloco criado
 
@@ -47,10 +54,11 @@ alocaMemoria:
     pushq %rbp
     movq %rsp, %rbp
     movq %rdi, %rbx # tamanho solicitado
-    add $16, %rbx # tamanho total do bloco (header + payload)
+    add $24, %rbx # tamanho total do bloco (header + payload)
 
-    movq topoHeap, %rcx
-    cmp inicioHeap, %rcx
+    # se a lista livre estiver vazia, aumentar a heap
+    movq listaLivre, %rcx
+    cmp $0, %rcx
     je aumentarHeap
 
     # movq 0, %rax # flag para o loop
@@ -72,7 +80,7 @@ alocaMemoria:
         movq %rax, topoHeap     # retorna endereço do novo topo
         subq %rbx, %rdi
         movq %rbx, %rsi         # tamanho do bloco
-        subq $16, %rsi          # subtrai header
+        subq $24, %rsi          # subtrai header
         call criarNodo
 
     fimAlocaMemoria:
@@ -117,7 +125,7 @@ imprimeNodo:
     leaq blocoLivre(%rip), %rsi
 
     imprimeBloco:
-    add $8, %rbx        # incrementa o ponteiro para a informação de tamanho do bloco
+    add $16, %rbx        # incrementa o ponteiro para a informação de tamanho do bloco (pula next)
     movq (%rbx), %rax   # pega o tamanho do bloco
     movq %rax, %r9
     movq $0, %rcx       # iterador
@@ -125,7 +133,7 @@ imprimeNodo:
     # imprime bloco gerencial
     pushq %rcx
     pushq %rsi
-    movq $16, %rdx
+    movq $24, %rdx
     movq $1, %rdi
     movq $1, %rax
     leaq gerencial(%rip), %rsi
@@ -179,9 +187,11 @@ imprimeHeap:
     loopImprimeHeap:
     cmp %rdx, %rbx
     jge fimImprimeHeap
+    pushq %rdx
     pushq %rbx 
     call imprimeNodo
     add $8, %rsp
+    popq %rdx
     movq %rax, %rbx
     jmp loopImprimeHeap
 
