@@ -5,6 +5,7 @@
     blocoOcupado: .string "+"
     novaLinha: .string "\n"
     formato: .string "%c"
+    gerencial: .string "################"
 
 .section .text
 .extern printf
@@ -69,8 +70,9 @@ alocaMemoria:
         add topoHeap, %rdi      # adiciona o topo atual para obter o novo topo
         syscall                 # brk(novo topo)
         movq %rax, topoHeap     # retorna endereço do novo topo
-        movq topoHeap, %rdi     # endereço do novo bloco
+        subq %rbx, %rdi
         movq %rbx, %rsi         # tamanho do bloco
+        subq $16, %rsi          # subtrai header
         call criarNodo
 
     fimAlocaMemoria:
@@ -153,11 +155,12 @@ imprimeHeap:
     pushq %rbp
     movq %rsp, %rbp
 
+    movq topoHeap, %rdx
     movq inicioHeap, %rbx
 
     loopImprimeHeap:
-    cmp topoHeap, %rbx
-    je fimImprimeHeap
+    cmp %rdx, %rbx
+    jge fimImprimeHeap
     pushq %rbx 
     call imprimeNodo
     add $8, %rsp
