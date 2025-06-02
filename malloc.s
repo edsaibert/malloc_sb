@@ -37,16 +37,35 @@ criarNodo:
     pushq %rbp
     movq %rsp, %rbp
 
-    movq $1, (%rdi)      # Marca como ocupado
-    movq %rdx, 8(%rdi)    # next = NULL
-    movq %rsi, 16(%rdi)   # Salva o tamanho 
-    movq listaOcupado, %rdx
-    movq %rdi, listaOcupado        # listaOcupado = end ultimo bloco alocado
+    movq $1, (%rdi)         # status = 1 (ocupado)
+    movq $0, 8(%rdi)        # next = 0
+    movq %rsi, 16(%rdi)     # tamanho = %rsi
 
-    movq %rdi, %rax      # Retorna o endereço do bloco criado
+    # se listaOcupado estiver vazia, é o primeiro bloco
+    movq listaOcupado, %rax
+    cmp $0, %rax
+    je primeiroBloco
 
+    # senão, percorre a lista até o último
+    procurarUltimo:
+    movq %rax, %rcx
+    movq 8(%rcx), %rax      # %rax = next
+    cmp $0, %rax
+    jne procurarUltimo
+
+    # agora %rcx é o último nodo, atualiza o next dele
+    movq %rdi, 8(%rcx)
+
+    jmp fimCriar
+
+    primeiroBloco:
+    movq %rdi, listaOcupado
+
+    fimCriar:
+    movq %rdi, %rax         # retorna o endereço do bloco
     pop %rbp
     ret
+
 
 .globl alocaMemoria
 .type alocaMemoria, @function
@@ -61,17 +80,10 @@ alocaMemoria:
     cmp $0, %rcx
     je aumentarHeap
 
-    # movq 0, %rax # flag para o loop
-    # # necessario procurar um bloco livre com tamanho igual ou maior a reg rax
-    # loop:
-    # cmp %rax, %rsi
-    # jge fimLoop
+    # caso contrário, tenta encontrar um bloco vazio com tamanho pelo menos %rbx
+    
 
-    # # se encontrar, torna o bloco ocupado e retorna o endereço 
-
-    # fimLoop:
-
-    # se não, utiliza a syscall brk e aumenta o tamanho da heap
+    # utiliza a syscall brk e aumenta o tamanho da heap
     aumentarHeap:
         movq $12, %rax
         movq %rbx, %rdi         # novo topo desejado em %rdi

@@ -10,8 +10,6 @@ int main(long int argc, char **argv)
 
     iniciaAlocador();
     a = (void*) alocaMemoria(100);
-    imprimeHeap();
-
     a = (void*) alocaMemoria(5);
     imprimeHeap();
 
