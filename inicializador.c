@@ -15,15 +15,23 @@ int main(long int argc, char **argv)
     d = (void*) alocaMemoria(5);
     imprimeHeap();
 
-    liberaMemoria(b);
+    liberaMemoria(a);
     printf("CHECKPOINT 1 \n");
     imprimeHeap();
-    liberaMemoria(d);
+    liberaMemoria(b);
     printf("CHECKPOINT 2 \n");
     imprimeHeap();
     liberaMemoria(c);
     printf("CHECKPOINT 3 \n");
     imprimeHeap();
+    liberaMemoria(d);
+    printf("CHECKPOINT 4 \n");
+    imprimeHeap();
+
+    a = (void*) alocaMemoria(5);
+    printf("CHECKPOINT 5\n");
+    imprimeHeap();
+    liberaMemoria(a);
 
     // to-do: inserir logica do codigo aqui
     // for (i = 0; i < 100; i++) {

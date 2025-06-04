@@ -80,7 +80,40 @@ alocaMemoria:
     je aumentarHeap
 
     # caso contrário, tenta encontrar um bloco vazio com tamanho pelo menos %rbx
+    movq %rbx, %rdx
+    subq $24, %rdx
+    movq %rcx, %r8
+    movq $0, %r10
+    movq 16(%r8), %r11
+    cmp %rdx, %r11
+    jge checaBestFit
+
+    loopBestFit:
+    cmp $0, %r8
+    je trataFimLoopBest
+    movq 16(%r8), %r9
+    addq $24, %r9
+    addq %r9, %r8
+    cmp %rdx, 16(%r8)
+    jge checaBestFit
+    jmp loopBestFit
+
+    checaBestFit:
+    cmp $0, %r10
+    je atribuiBestFit
+    cmp %r10, 16(%r8)
+    jl atribuiBestFit
+    jmp loopBestFit
+
+    atribuiBestFit:
+    movq 16(%r8), %r11
+    movq %r11, %r10
+    movq %r8, %rcx
+    jmp loopBestFit
     
+    trataFimLoopBest:
+    cmp $0, %r10
+    jne ajustaBloco
 
     # utiliza a syscall brk e aumenta o tamanho da heap
     aumentarHeap:
@@ -93,6 +126,29 @@ alocaMemoria:
         movq %rbx, %rsi         # tamanho do bloco
         subq $24, %rsi          # subtrai header
         call criarNodo
+        jmp fimAlocaMemoria
+    
+    ajustaBloco:
+    movq $1, %rcx
+    movq %rdx, 16(%rcx)
+    movq listaOcupado, %rax
+    cmp $0, %rax
+    je primeiroListaOcupado
+
+    procurarUltimoOcupado:
+    movq %rax, %rbx
+    movq 8(%rbx), %rax
+    cmp $0, %rax
+    jne procurarUltimoOcupado
+    movq %rcx, 8(%rbx)
+    jmp removeDaListaLivre
+
+    primeiroListaOcupado:
+    movq %rcx, listaOcupado
+
+    removeDaListaLivre:
+    movq %rcx, %r13
+    call removeListaLivre
 
     fimAlocaMemoria:
         pop %rbp
@@ -137,8 +193,8 @@ liberaMemoria:
 
     primeiroBlocoOcupado:
     # Caso o bloco seja o primeiro da lista
-    movq listaOcupado, %rdx
     movq 8(%rax), %rdx
+    movq %rdx, listaOcupado
     jmp blocoLiberado
 
     blocoEncontrado:
@@ -172,7 +228,7 @@ checaEstadoVizinhos:
     # r8 - atual
     # r10 - proximo
     movq $0, %rax
-    cmp inicioHeap, %rbx       # inicio == anterior
+    cmp %r8, %rbx       # inicio == anterior
     je checaNext
     cmp $0, (%rbx)
     je anteriorLivre
