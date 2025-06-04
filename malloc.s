@@ -74,7 +74,6 @@ alocaMemoria:
     movq %rsp, %rbp
     movq %rdi, %rbx # tamanho solicitado
     add $24, %rbx # tamanho total do bloco (header + payload)
-
     # se a lista livre estiver vazia, aumentar a heap
     movq listaLivre, %rcx
     cmp $0, %rcx
@@ -163,25 +162,129 @@ liberaMemoria:
     ret
 
 
+.globl checaEstadoVizinhos
+.type checaEstadoVizinhos, @function
+checaEstadoVizinhos:
+    pushq %rbp
+    movq %rsp, %rbp
+    # parametros:
+    # rbx - anterior
+    # r8 - atual
+    # r10 - proximo
+    movq $0, %rax
+    cmp inicioHeap, %rbx       # inicio == anterior
+    je checaNext
+    cmp $0, (%rbx)
+    je anteriorLivre
+    jmp checaNext
+
+    anteriorLivre:
+    addq $1, %rax
+
+    checaNext:
+    cmp topoHeap, %r10          # topo == next
+    je fimChecaVizinhos
+    cmp $0, (%r10)
+    je nextLivre
+    jmp fimChecaVizinhos
+
+    nextLivre:
+    addq $2, %rax
+
+    fimChecaVizinhos:
+
+    popq %rbp
+    ret
+
+
+.globl removeListaLivre
+.type removeListaLivre, @function
+removeListaLivre:
+    pushq %rbp
+    movq %rsp, %rbp
+    # %r13 == aquela a ser removida                          %rax
+    movq listaLivre, %rax
+    cmp %rax, %r13
+    jne loopEncontrarAnt
+    movq 8(%rax), %rcx
+    movq %rcx, listaLivre
+    jmp fimRemove
+
+    loopEncontrarAnt:
+    movq %rax, %rcx
+    movq 8(%rcx), %rax
+    cmp %rax, %r13
+    jne loopEncontrarAnt
+    
+    movq 8(%rax), %r12
+    movq %r12, 8(%rcx)
+    
+    fimRemove:
+
+    popq %rbp
+    ret
+
 .globl fundirVizinhos
 .type fundirVizinhos, @function
-fundirVizinhos:
+fundirVizinhos:#---
     pushq %rbp
     movq %rsp, %rbp
     # parametros:
     # rdi - endereço do bloco que acabou de ser liberado
 
     # necessário percorrer a heap e encontrar o bloco anterior e próximo do bloxo
-    movq inicioHeap, %rax 
-    movq %rax, %rbx
+    movq inicioHeap, %r8 
+    movq %r8, %rbx
 
-    loopEncontraBloco:
-    cmp %rdi, %rax
-    jge fimLoopEncontraBloco
-    add 16(%rbx), %rbx
-    jmp loopEncontraBloco
+    loopEncontraBlocoAnterior:
+    cmp %rdi, %r8
+    je fimLoopEncontraBloco
+    movq %r8, %rbx             # %rbx = %r8
+    movq 16(%rbx), %r9
+    addq $24, %r9
+    addq %r9, %r8                # %r8 = next
+    jmp loopEncontraBlocoAnterior
 
     fimLoopEncontraBloco:
+    movq 16(%r8), %r9
+    addq $24, %r9
+    movq %r8, %r10          # %r10 = next
+    addq %r9, %r10
+    call checaEstadoVizinhos
+    movq %rax, %r14
+    cmp $2, %r14
+    jl menorQue2
+    jge maiorIgual2
+    
+    # %rbx == anterior
+    # %r8 == atual
+    # %r10 == proximo
+    maiorIgual2:
+    movq 16(%r10), %r9
+    movq 16(%r8), %r11
+    addq %r9, %r11
+    addq $24, %r11
+    movq %r11, 16(%r8)
+    movq %r10, %r13
+    call removeListaLivre
+    cmp $3, %r14
+    je menorQue2
+    jmp fimFundirVizinhos
+
+    menorQue2:
+    cmp $0, %r14
+    je fimFundirVizinhos
+    movq 16(%r8), %r9
+    movq 16(%rbx), %r10
+    addq %r9, %r10
+    addq $24, %r10
+    movq %r10, 16(%rbx)
+    movq %r8, %r13
+    call removeListaLivre
+    movq %rbx, %rdi
+
+    fimFundirVizinhos:
+
     popq %rbp
     ret
 
