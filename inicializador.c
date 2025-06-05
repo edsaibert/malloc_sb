@@ -9,29 +9,28 @@ int main(long int argc, char **argv)
     int i;
 
     iniciaAlocador();
-    a = (void*) alocaMemoria(5);
-    b = (void*) alocaMemoria(1); 
-    c = (void*) alocaMemoria(1);
-    d = (void*) alocaMemoria(5);
+    a = (void*) alocaMemoria(100);
+    b = (void*) alocaMemoria(100);
+    c = (void*) alocaMemoria(100);
+    d = (void*) alocaMemoria(100);
     imprimeHeap();
 
     liberaMemoria(a);
     printf("CHECKPOINT 1 \n");
     imprimeHeap();
-    liberaMemoria(b);
+    liberaMemoria(c);
     printf("CHECKPOINT 2 \n");
     imprimeHeap();
-    liberaMemoria(c);
-    printf("CHECKPOINT 3 \n");
-    imprimeHeap();
-    liberaMemoria(d);
-    printf("CHECKPOINT 4 \n");
-    imprimeHeap();
 
-    a = (void*) alocaMemoria(5);
-    printf("CHECKPOINT 5\n");
+    a = (void*) alocaMemoria(30);
+    printf("CHECKPOINT 3\n");
     imprimeHeap();
     liberaMemoria(a);
+    printf("CHECKPOINT 4\n");
+    imprimeHeap();
+    liberaMemoria(b);
+    printf("CHECKPOINT 5\n");
+    imprimeHeap();
 
     // to-do: inserir logica do codigo aqui
     // for (i = 0; i < 100; i++) {

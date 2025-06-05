@@ -87,13 +87,13 @@ alocaMemoria:
     movq 16(%r8), %r11
     cmp %rdx, %r11
     jge checaBestFit
-
-    loopBestFit:
     cmp $0, %r8
     je trataFimLoopBest
-    movq 16(%r8), %r9
-    addq $24, %r9
-    addq %r9, %r8
+
+    loopBestFit:
+    movq 8(%r8), %r8
+    cmp $0, %r8
+    je trataFimLoopBest
     cmp %rdx, 16(%r8)
     jge checaBestFit
     jmp loopBestFit
@@ -129,8 +129,8 @@ alocaMemoria:
         jmp fimAlocaMemoria
     
     ajustaBloco:
-    movq $1, %rcx
-    movq %rdx, 16(%rcx)
+    movq $1, (%rcx)
+    movq %r11, 16(%rcx)
     movq listaOcupado, %rax
     cmp $0, %rax
     je primeiroListaOcupado
