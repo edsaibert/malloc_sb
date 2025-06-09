@@ -5,15 +5,33 @@
 
 int main(long int argc, char **argv)
 {
-    void *a;
-    int i;
+    void *a, *b, *c, *d; 
 
     iniciaAlocador();
     a = (void*) alocaMemoria(100);
-    a = (void*) alocaMemoria(5);
+    b = (void*) alocaMemoria(100);
+    c = (void*) alocaMemoria(90);
+    d = (void*) alocaMemoria(100);
     imprimeHeap();
 
     liberaMemoria(a);
+    printf("CHECKPOINT 1 \n");
+    imprimeHeap();
+    liberaMemoria(c);
+    printf("CHECKPOINT 2 \n");
+    imprimeHeap();
+
+    a = (void*) alocaMemoria(90);
+    printf("CHECKPOINT 3\n");
+    imprimeHeap();
+    liberaMemoria(a);
+    printf("CHECKPOINT 4\n");
+    imprimeHeap();
+    liberaMemoria(b);
+    printf("CHECKPOINT 5\n");
+    imprimeHeap();
+    liberaMemoria(d);
+    printf("CHECKPOINT 6\n");
     imprimeHeap();
 
     // to-do: inserir logica do codigo aqui
