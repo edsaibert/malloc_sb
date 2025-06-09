@@ -340,7 +340,6 @@ fundirVizinhos:#---
     movq %rbx, %rdi
 
     fimFundirVizinhos:
-
     popq %rbp
     ret
 
