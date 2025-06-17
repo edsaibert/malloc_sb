@@ -1,46 +1,58 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "malloc.h"
 
-int main(long int argc, char **argv)
-{
-    void *a, *b, *c, *d; 
+int main (long int argc, char** argv) {
+  void *a,*b,*c,*d,*e;
 
-    iniciaAlocador();
-    a = (void*) alocaMemoria(100);
-    b = (void*) alocaMemoria(100);
-    c = (void*) alocaMemoria(90);
-    d = (void*) alocaMemoria(100);
-    imprimeHeap();
+  iniciaAlocador();
+  imprimeHeap();
+  printf("\n");
+  // 0) estado inicial
 
-    liberaMemoria(a);
-    printf("CHECKPOINT 1 \n");
-    imprimeHeap();
-    liberaMemoria(c);
-    printf("CHECKPOINT 2 \n");
-    imprimeHeap();
+  a=(void *) alocaMemoria(10);
+  imprimeHeap();
+  printf("\n");
+  b=(void *) alocaMemoria(30);
+  imprimeHeap();
+  printf("\n");
+  c=(void *) alocaMemoria(20);
+  imprimeHeap();
+  printf("\n");
+  d=(void *) alocaMemoria(40);
+  imprimeHeap();
+  printf("\n");
+  // 1) Espero ver quatro segmentos ocupados
 
-    a = (void*) alocaMemoria(90);
-    printf("CHECKPOINT 3\n");
-    imprimeHeap();
-    liberaMemoria(a);
-    printf("CHECKPOINT 4\n");
-    imprimeHeap();
-    liberaMemoria(b);
-    printf("CHECKPOINT 5\n");
-    imprimeHeap();
-    liberaMemoria(d);
-    printf("CHECKPOINT 6\n");
-    imprimeHeap();
+  liberaMemoria(a);
+  imprimeHeap();
+  printf("\n");
+  liberaMemoria(c);
+  imprimeHeap();
+  printf("\n");
+  // 2) Espero ver quatro segmentos alternando
+  //    ocupados e livres
 
-    // to-do: inserir logica do codigo aqui
-    // for (i = 0; i < 100; i++) {
-    //     a = malloc(100);
-    //     strcpy(a, "TESTE");
-    //     printf("%p %s\n", a, (char *)a);
-    //     free(a);
-    // }
+  a=(void *) alocaMemoria(5);
+  imprimeHeap();
+  printf("\n");
+  c=(void *) alocaMemoria(9);
+  imprimeHeap();
+  printf("\n");
+  // 3) Deduzam
 
-    return 0;
+  liberaMemoria(c);
+  imprimeHeap();
+  printf("\n");
+  liberaMemoria(a);
+  imprimeHeap();
+  printf("\n");
+  liberaMemoria(b);
+  imprimeHeap();
+  printf("\n");
+  liberaMemoria(d);
+  imprimeHeap();
+  printf("\n");
+   // 4) volta ao estado inicial
+
+  finalizaAlocador();
 }
